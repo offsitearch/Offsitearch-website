@@ -1,0 +1,82 @@
+/* v3 DECK — pinned sheet-head scrollytelling.
+   Each sheet only pins its heading band (.sheet-head) at the top of the
+   viewport; the sheet body flows through beneath it at natural height, so
+   long content (dossier grid, pricing tiers, FAQ) is never clipped.
+   Consecutive sheet heads cascade: the incoming head covers the outgoing one
+   because it is later in the DOM at the same z-index. Pure CSS sticky —
+   no JS, no wrappers, nothing to maintain. */
+
+:root {
+  --deck-head-top: var(--topbar-h); /* parks flush under the topbar bar */
+}
+
+.deck-slide {
+  padding-top: 0 !important;
+  padding-bottom: 0 !important;
+}
+
+/* ── pinned heading band ────────────────────────────────────────────── */
+.deck-slide .sheet-head {
+  position: -webkit-sticky;
+  position: sticky;
+  top: var(--deck-head-top);
+  z-index: 20;
+  background: inherit; /* same paper as its section */
+  padding-top: 22px;
+  padding-bottom: 8px;
+  box-shadow: 0 18px 26px -28px rgba(30, 32, 36, 0.55);
+}
+
+.deck-slide .sheet-head .sheet-header {
+  margin-bottom: 0;
+}
+
+.deck-slide .sheet-head .sheet-header__meta {
+  margin-bottom: 12px;
+}
+
+.deck-slide .sheet-head .sheet-header__title-row {
+  align-items: flex-end;
+}
+
+/* ── scrolling sheet body ───────────────────────────────────────────── */
+.deck-slide .sheet-body {
+  position: relative;
+  z-index: 10;
+  padding-top: 26px;
+  padding-bottom: 120px;
+  /* Off-screen sheet bodies skip style + paint work entirely (replaces the
+     old scroll-position cost with a cheap intrinsic-size spacer). Once it
+     scrolls into view the real height kicks in. */
+  content-visibility: auto;
+  contain-intrinsic-size: auto 900px;
+}
+
+/* ── merged KPI ledger at the foot of Sheet 02 (methodology) ────────── */
+.kpi-ledger {
+  margin-top: 76px;
+}
+
+.kpi-ledger .sheet-header__meta {
+  margin-bottom: 10px;
+}
+
+.kpi-ledger .metrics-grid {
+  grid-template-columns: repeat(4, 1fr);
+}
+
+/* ── small viewports ────────────────────────────────────────────────── */
+@media (max-width: 700px) {
+  .sheet-header__title-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+}
+
+@media (max-height: 800px) {
+  .deck-slide .sheet-body {
+    padding-top: 18px;
+    padding-bottom: 90px;
+  }
+}

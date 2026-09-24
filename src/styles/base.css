@@ -1,0 +1,2014 @@
+/* ==========================================================================
+   OFFSITE V2 — 5-PHASE STICKY SCROLLYTELLING HERO
+   Brand palette preserved exactly from v1 (illoca-style.css).
+   ========================================================================== */
+
+:root {
+  /* Core Palette — identical to v1 */
+  --bg-paper: #FDF3DF;
+  --bg-paper-light: #FFFAED;
+  --bg-paper-dark: #F3E6CD;
+
+  --ink-blue: #3B60C5;
+  --ink-blue-dark: #244499;
+  --ink-blue-light: #EBF1FF;
+
+  --ink-dark: #1E2024;
+  --ink-muted: #5C6269;
+
+  --accent-orange: #E75A38;
+  --accent-orange-hover: #D44725;
+
+  /* Text-safe variants — same hues, darkened to pass WCAG AA (4.5:1) when
+     used as small text or a fill under white/paper. Use these for any
+     foreground on paper; keep --accent-orange for large fills/deco. */
+  --accent-orange-ink: #B8482C;
+  --ink-muted-strong: #565C63;
+
+  --blueprint-bg: #1A378A;
+
+  /* Shared topbar height — the pinned sheet-head parks flush under this. */
+  --topbar-h: 56px;
+
+  /* Phase hand-off transition (toggle-able): phase-wave | phase-sheet |
+     phase-curtain | phase-sweep | phase-iris. Write a new @keyframes and
+     point this var at its name for a custom one.
+     TEMP: default is now a plain fade (phase-fade) — the fancier covers
+     were misbehaving on some pages. Restore by re-pointing this var. */
+  --phase-tt: phase-fade;
+  --phase-tt-dur: 0.35s;
+
+  /* Instrument chrome — gold drafting-ruler material uniting topbar + ruler */
+  --gold: #C7A24A;
+  --gold-bright: #F4D05C;
+  --gold-deep: #8A6B1F;
+  --gold-line: rgba(199, 162, 74, 0.28);
+  --glass-smoke: rgba(20, 22, 26, 0.6);
+
+  /* Fonts */
+  --font-display: 'Space Grotesk', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+  --font-hand: 'Architects Daughter', cursive;
+  --font-serif: 'Playfair Display', Georgia, serif;
+
+  /* Elevation & Borders */
+  --border-rule: 1px solid rgba(30, 32, 36, 0.14);
+  --radius-sm: 6px;
+  --radius-md: 12px;
+  --radius-lg: 18px;
+
+  /* Layout */
+  --container-max: 1240px;
+}
+
+/* Reset & Base */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  font-size: 16px;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  /* Center-nav anchor jumps glide through the sticky deck */
+  scroll-behavior: smooth;
+}
+
+body {
+  background-color: var(--bg-paper);
+  color: var(--ink-dark);
+  font-family: var(--font-display);
+  line-height: 1.55;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+img {
+  display: block;
+  max-width: 100%;
+}
+
+.container {
+  width: 100%;
+  max-width: var(--container-max);
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: 24px;
+  padding-right: 24px;
+}
+
+/* ──────────────────────────────────────────────────────────────────────────
+   CHROMELESS TOPBAR — invisible container. No box, no border, no blur —
+   over the landing cover + scrollytelling it floats the brand alone. When
+   hero.js marks `.is-downstream` (phase ruler retracts), the center links
+   and "Start a project" CTA arrive together. Sits above every slide: z 999.
+   ────────────────────────────────────────────────────────────────────────── */
+.navbar-wrapper {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  z-index: 999;
+  pointer-events: none;
+  padding-top: 16px;
+}
+
+/* 3-column grid: brand left, links dead-centre, CTA right. Empty columns
+   simply collapse, so the default (hero) state shows brand only. */
+.navbar {
+  pointer-events: auto;
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  gap: 24px;
+  width: min(var(--container-max), calc(100vw - 44px));
+  margin: 0 auto;
+  padding: 0;
+  background: none;
+  border: none;
+  border-radius: 0;
+  box-shadow: none;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+
+.navbar__brand {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  text-decoration: none;
+  color: var(--bg-paper-light);
+  /* soft ink plate so the mark stays legible over any frame */
+  text-shadow: 0 1px 10px rgba(10, 12, 16, 0.55);
+}
+
+.navbar__logo-box {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  background: rgba(20, 22, 26, 0.35);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid rgba(244, 208, 92, 0.35);
+  border-radius: var(--radius-sm);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+.navbar__logo-box img {
+  width: 22px;
+  height: 22px;
+  object-fit: contain;
+}
+
+.navbar__brand-text {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 1.15rem;
+  letter-spacing: 0.08em;
+}
+
+.navbar__actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+/* Downstream-only center nav + CTA. Hidden while the landing cover and the
+   5-phase journey are on screen (the imagery breathes); `.is-downstream`
+   (set by hero.js exactly when the phase ruler retracts) reveals them so
+   the pages below get logo | links | CTA navigation. */
+.navbar__nav,
+.navbar__actions {
+  display: none;
+}
+
+.navbar-wrapper.is-downstream .navbar__nav {
+  display: flex;
+  align-items: center;
+  gap: clamp(14px, 2vw, 28px);
+  animation: navbar-arrive 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.navbar-wrapper.is-downstream .navbar__actions {
+  display: flex;
+  align-items: center;
+  justify-self: end;
+  gap: 10px;
+  animation: navbar-arrive 0.5s cubic-bezier(0.16, 1, 0.3, 1) 0.08s both;
+}
+
+.navbar__nav a {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  text-decoration: none;
+  color: rgba(253, 243, 223, 0.82);
+  text-shadow: 0 1px 8px rgba(10, 12, 16, 0.5);
+  transition: color 0.2s ease;
+}
+
+.navbar__nav a:hover,
+.navbar__nav a:focus-visible {
+  color: var(--gold-bright);
+}
+
+@keyframes navbar-arrive {
+  from { opacity: 0; transform: translateY(-8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* Over the light section layer the floating bar must flip to ink — the
+   paper-tinted text that reads on dark journey frames is invisible on the
+   paper section backgrounds. Activated together with `.is-downstream`. */
+.navbar-wrapper.is-downstream .navbar__brand {
+  color: var(--ink-dark);
+  text-shadow: none;
+}
+
+.navbar-wrapper.is-downstream .navbar__logo-box {
+  background: rgba(255, 255, 255, 0.55);
+  border-color: rgba(30, 32, 36, 0.25);
+  box-shadow: 0 1px 6px rgba(30, 32, 36, 0.12);
+}
+
+.navbar-wrapper.is-downstream .navbar__nav a {
+  color: var(--ink-muted);
+  text-shadow: none;
+}
+
+.navbar-wrapper.is-downstream .navbar__nav a:hover,
+.navbar-wrapper.is-downstream .navbar__nav a:focus-visible {
+  color: var(--ink-blue);
+}
+
+/* Visible topbar — the floating bar becomes a real instrument once the
+   journey hands over to the sheet layer: paper-glass slab + hairline so
+   brand, section links and CTA sit on a clearly readable bar. */
+.navbar-wrapper.is-downstream {
+  height: var(--topbar-h);
+  padding-top: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(253, 243, 223, 0.9);
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid rgba(30, 32, 36, 0.14);
+  box-shadow: 0 12px 28px -22px rgba(30, 32, 36, 0.45);
+}
+
+.navbar__brand,
+.navbar__nav a {
+  transition: color 0.25s ease, text-shadow 0.25s ease;
+}
+
+/* CTA — gold fill inverts the ruler material: solid brass slab. */
+.btn-blueprint {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background: linear-gradient(180deg, var(--gold-bright), var(--gold));
+  color: var(--ink-dark);
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  padding: 10px 20px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--gold-bright);
+  text-decoration: none;
+  cursor: pointer;
+  transition: background 0.2s cubic-bezier(0.16, 1, 0.3, 1), transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s ease, border-color 0.2s ease;
+  box-shadow: 0 3px 12px rgba(199, 162, 74, 0.3);
+}
+
+.btn-blueprint:hover {
+  background: var(--gold-bright);
+  transform: translateY(-1px);
+  box-shadow: 0 7px 18px rgba(244, 208, 92, 0.45);
+}
+
+/* ──────────────────────────────────────────────────────────────────────────
+   STICKY SCROLL CONTAINER + SLIDE STACK
+   - Parent height comes from its 5 × 100vh children (no fixed height needed).
+   - Every slide sticks at top: 0; later siblings paint over earlier ones.
+   - Explicit ascending z-index removes any paint-order ambiguity.
+   - Sticky releases when the parent's bottom edge passes → smooth unlock
+     into .next-placeholder.
+   ────────────────────────────────────────────────────────────────────────── */
+.hero-scroll {
+  position: relative;
+  width: 100%;
+}
+
+/* Trailing dwell hold: one extra 100vh after the last phase keeps phase 5
+   PINNED after its filmstrip finishes instead of releasing instantly and
+   "shooting up". The last slide unlocks only once this hold scrolls past. */
+.hero-scroll::after {
+  content: '';
+  display: block;
+  height: 100vh;                /* phase-5 finale dwell */
+  pointer-events: none;
+}
+
+.hero-slide {
+  position: -webkit-sticky; /* Safari */
+  position: sticky;
+  top: 0;
+  height: 100vh;            /* NOT dvh/vh variants — avoids mobile URL-bar jitter */
+  width: 100%;
+  overflow: hidden;
+  isolation: isolate;       /* own stacking context: cards can never leak out */
+  /* Dark base until the phase filmstrip's first frame renders (no flash) */
+  background-color: var(--ink-dark);
+  /* COVER-REVEAL STACK — every slide stays fully opaque; WHICH one sits on
+     top is decided purely by z-index (the .is-active slide gets z 50).
+     The incoming phase dissolves in 0→1 OVER the still-opaque outgoing one,
+     so no two semi-transparent images ever overlap against the dark base —
+     the dark aria that plagued the old crossfade is impossible now. */
+  opacity: 1;
+  visibility: visible;
+}
+
+/* PHASE TRANSITIONS — a toggle-able menu, applied to the INCOMING COVER
+   itself (no overlay, no external element: only the phase imagery moves).
+   The incoming phase is fully opaque at every instant, so the outgoing cover
+   simply shows through the clipped/revealed area — a black blend is
+   impossible. Switch by editing --phase-tt near the top of this file.
+   TEMP: default is a simple fade (see phase-fade below). */
+.hero-slide.is-active {
+  z-index: 50;
+  visibility: visible;
+  animation: var(--phase-tt, phase-wave) var(--phase-tt-dur, 0.6s) cubic-bezier(0.16, 1, 0.3, 1) both;
+  box-shadow: 0 -6px 18px rgba(17, 24, 39, 0.28);
+  will-change: opacity, transform;
+}
+
+/* TEMP fade — the incoming phase dissolves 0→1 over the outgoing cover. */
+@keyframes phase-fade {
+  0%   { opacity: 0; }
+  100% { opacity: 1; }
+}
+
+/* 01 — WAVE (default): a scalloped, wave-edge sheet of drafting paper
+   unrolls upward over the previous phase. */
+@keyframes phase-wave {
+  0%   { clip-path: polygon(0% 100%, 0% 96%, 0% 96%, 6.25% 91%, 12.5% 96%, 18.75% 101%, 25% 96%, 31.25% 91%, 37.5% 96%, 43.75% 101%, 50% 96%, 56.25% 91%, 62.5% 96%, 68.75% 101%, 75% 96%, 81.25% 91%, 87.5% 96%, 93.75% 101%, 100% 96%, 100% 100%); }
+  25%  { clip-path: polygon(0% 100%, 0% 74%, 0% 74%, 6.25% 69%, 12.5% 74%, 18.75% 79%, 25% 74%, 31.25% 69%, 37.5% 74%, 43.75% 79%, 50% 74%, 56.25% 69%, 62.5% 74%, 68.75% 79%, 75% 74%, 81.25% 69%, 87.5% 74%, 93.75% 79%, 100% 74%, 100% 100%); }
+  50%  { clip-path: polygon(0% 100%, 0% 44%, 0% 44%, 6.25% 39%, 12.5% 44%, 18.75% 49%, 25% 44%, 31.25% 39%, 37.5% 44%, 43.75% 49%, 50% 44%, 56.25% 39%, 62.5% 44%, 68.75% 49%, 75% 44%, 81.25% 39%, 87.5% 44%, 93.75% 49%, 100% 44%, 100% 100%); }
+  75%  { clip-path: polygon(0% 100%, 0% 16%, 0% 16%, 6.25% 11%, 12.5% 16%, 18.75% 21%, 25% 16%, 31.25% 11%, 37.5% 16%, 43.75% 21%, 50% 16%, 56.25% 11%, 62.5% 16%, 68.75% 21%, 75% 16%, 81.25% 11%, 87.5% 16%, 93.75% 21%, 100% 16%, 100% 100%); }
+  100% { clip-path: polygon(0% 100%, 0% 0%, 0% 0%, 6.25% -5%, 12.5% 0%, 18.75% 5%, 25% 0%, 31.25% -5%, 37.5% 0%, 43.75% 5%, 50% 0%, 56.25% -5%, 62.5% 0%, 68.75% 5%, 75% 0%, 81.25% -5%, 87.5% 0%, 93.75% 5%, 100% 0%, 100% 100%); }
+}
+
+/* 02 — SHEET: the whole cover scrolls up like one sheet pulled over another. */
+@keyframes phase-sheet {
+  0%   { transform: translate3d(0, 110%, 0); }
+  100% { transform: translate3d(0, 0, 0); }
+}
+
+/* 03 — CURTAIN: the cover sweeps in from the right like passing sliding door. */
+@keyframes phase-curtain {
+  0%   { transform: translate3d(110%, 0, 0); }
+  100% { transform: translate3d(0, 0, 0); }
+}
+
+/* 04 — DIAG WIPE: a corner-to-corner diagonal unveiling. */
+@keyframes phase-sweep {
+  0%   { clip-path: polygon(0% 100%, 0% 100%, 0% 100%, 0% 100%); }
+  35%  { clip-path: polygon(0% 100%, 0% 20%, 40% 100%, 0% 100%); }
+  100% { clip-path: polygon(0% 0%, 100% 0%, 100% 100%, 0% 100%); }
+}
+
+/* 05 — IRIS: a centre diamond expands to cover the viewport. */
+@keyframes phase-iris {
+  0%   { clip-path: polygon(50% 50%, 50% 50%, 50% 50%, 50% 50%); }
+  100% { clip-path: polygon(0% 0%, 100% 0%, 100% 100%, 0% 100%); }
+}
+
+/* Phase transitions come from the toggle-able menu above. The z-index flip
+   here means phase 1 paints ON TOP before JS promotes the active one, so the
+   very first paint (pre-JS) shows phase 1, not phase 5. */
+.hero-slide--1 { z-index: 10; }
+.hero-slide--2 { z-index: 9; }
+.hero-slide--3 { z-index: 8; }
+.hero-slide--4 { z-index: 7; }
+.hero-slide--5 { z-index: 6; }
+/* .hero-slide.is-active (z 50) always beats these once JS takes over. The
+   descending order only matters for the pre-JS first paint. */
+
+/* Full-bleed filmstrip container (cover + center per spec).
+   Child .hero-frame layers crossfade; JS builds them lazily from
+   data-frame-dir / data-frame-count. */
+.hero-slide__bg {
+  position: absolute;
+  inset: 0;
+  /* Subtle settle-in parallax: scale eases to 1 when the slide is revealed.
+     One-shot transition (no scroll listeners) → no jitter. */
+  transform: scale(1.06);
+  transition: transform 1.6s cubic-bezier(0.16, 1, 0.3, 1);
+  z-index: 0;
+}
+
+.hero-slide.is-visible .hero-slide__bg {
+  transform: scale(1);
+  /* Promoted only for the reveal, not pinned on all five slides forever. */
+  will-change: transform;
+}
+
+/* One filmstrip frame: layering controlled by hero.js's scroll scubber.
+   Instant hard-cut (NO crossfade) — video plays as discrete frames; a fade
+   at this resolution scrims both images against the dark base and reads as
+   a pulsing dark aura between frames. The short dissolve is what caused it. */
+.hero-frame {
+  position: absolute;
+  inset: 0;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  opacity: 0;
+  transition: none;
+}
+
+/* Legibility veil: darker toward the LEFT (where the card sits) +
+   a soft top wash so the navbar always has contrast. */
+.hero-slide__veil {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  background:
+    linear-gradient(180deg, rgba(30, 32, 36, 0.45) 0%, rgba(30, 32, 36, 0) 22%),
+    linear-gradient(
+      90deg,
+      rgba(30, 32, 36, 0.72) 0%,
+      rgba(30, 32, 36, 0.38) 50%,
+      rgba(30, 32, 36, 0.12) 100%
+    );
+}
+
+/* ──────────────────────────────────────────────────────────────────────────
+   TRANSITION LAYER — COLOR-TEMPERATURE VEIL
+   The emotional drift "warm → cool → warm", applied ONLY as each phase
+   dissolves into the next (it rides each phase's own --hero-fade crossfade,
+   never animating on its own). Every slide carries one; only the visible
+   one paints, so the palette from the outgoing phase cools/tints smoothly
+   into the incoming one. Scoped to transitions, not intra-phase content.
+   ────────────────────────────────────────────────────────────────────────── */
+.hero-slide__tint {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+  mix-blend-mode: soft-light;      /* tint luminance, not opaque wash */
+  /* Per-phase temperature token (set below). Anchored: warm→cool→warm.
+     P1 warm spark → P2/P3 cool blue precision → P4 golden-hour steel →
+     P5 warmest home. */
+  background: var(--tint, transparent);
+}
+
+.hero-slide--1 .hero-slide__tint { --tint: rgba(231, 90, 56, 0.24); }    /* warm amber  */
+.hero-slide--2 .hero-slide__tint { --tint: rgba(59, 96, 197, 0.28); }    /* cool blue   */
+.hero-slide--3 .hero-slide__tint { --tint: rgba(36, 68, 153, 0.32); }    /* blueprint   */
+.hero-slide--4 .hero-slide__tint { --tint: rgba(231, 90, 56, 0.30); }    /* golden hour */
+.hero-slide--5 .hero-slide__tint { --tint: rgba(244, 208, 92, 0.26); }   /* warmest     */
+
+/* ──────────────────────────────────────────────────────────────────────────
+   EDITORIAL CONTENT BLOCK (identical structure on all 5 slides)
+   Anchored left-center as TRANSPARENT text over the imagery — no frosted
+   glass, no box. Uses the original brand palette: paper-cream body text,
+   ink-blue titles, accent-orange phase marks. Fades + rises into view once
+   per slide. Legibility comes from the slide veil (darkened toward the
+   left) + soft text shadows, not from a container.
+   ────────────────────────────────────────────────────────────────────────── */
+.hero-card {
+  position: absolute;
+  left: clamp(24px, 5vw, 80px);
+  top: 50%;
+  z-index: 2;
+  width: min(480px, calc(100% - 48px));
+  padding: 0;
+  background: transparent;
+  border: none;
+  box-shadow: none;
+  /* Start slightly low + transparent; resolve when .is-visible lands */
+  opacity: 0;
+  transform: translateY(calc(-50% + 32px));
+  transition:
+    opacity 0.7s ease 0.1s,
+    transform 0.7s cubic-bezier(0.16, 1, 0.3, 1) 0.1s;
+  pointer-events: none; /* never intercepts scroll on the slide */
+}
+
+.hero-slide.is-visible .hero-card {
+  opacity: 1;
+  transform: translateY(-50%);
+}
+
+.hero-card__label {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--font-mono);
+  font-size: 0.74rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--accent-orange);
+  margin-bottom: 18px;
+}
+
+.hero-card__label-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--accent-orange);
+  box-shadow: 0 0 0 3px rgba(231, 90, 56, 0.25);
+}
+
+.hero-card__title {
+  font-family: var(--font-serif);
+  font-weight: 700;
+  font-size: clamp(1.7rem, 2.6vw, 2.35rem);
+  line-height: 1.18;
+  letter-spacing: -0.01em;
+  color: var(--bg-paper);       /* brand paper tone as light-on-dark text */
+  margin-bottom: 16px;
+  /* no box behind the block — keep the type legible over any frame */
+  text-shadow: 0 2px 18px rgba(30, 32, 36, 0.75);
+}
+
+.hero-card__desc {
+  font-family: var(--font-display);
+  font-size: 0.98rem;
+  font-weight: 400;
+  line-height: 1.65;
+  color: rgba(253, 243, 223, 0.9);
+  text-shadow: 0 1px 12px rgba(30, 32, 36, 0.8);
+}
+
+/* ──────────────────────────────────────────────────────────────────────────
+   5-PHASE JOURNEY RULER — "Natraj" drafting-glass ruler
+   Fixed bar spanning the FULL viewport width, styled like a real glass ruler
+   in the project's main gold. Graduations hang from the BOTTOM edge only
+   (no marks at the top) — mirroring a real ruler whose scale sits on its
+   lower lip. A travelling gold marker advances 0→100% across all 5 phases
+   with scroll: travelled = gold, remaining = dark/grey.
+   ────────────────────────────────────────────────────────────────────────── */
+.phase-ruler {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 100;                /* above slides (z 50), below navbar (z 200) */
+  display: flex;
+  align-items: stretch;
+  gap: 14px;
+  padding: 0 clamp(12px, 3vw, 40px);
+  height: clamp(26px, 4vh, 34px);
+  pointer-events: none;
+  user-select: none;
+}
+
+.phase-ruler__brand,
+.phase-ruler__unit {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: flex-end;
+  padding-bottom: 3px;
+  font-family: var(--font-mono);
+  font-size: 0.6rem;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--gold);               /* etched gold (shared token) */
+  white-space: nowrap;
+}
+
+/* The glass body: translucent plate with gold lacing (same material as the
+   topbar), stretching edge to edge across the whole viewport.
+   Bottom-anchored scale sits inside. */
+.phase-ruler__glass {
+  position: relative;
+  flex: 1;
+  height: 100%;
+  border-radius: 2px;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.01)),
+    var(--glass-smoke);
+  border: 1px solid var(--gold-line);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.08),
+    0 4px 18px rgba(10, 12, 16, 0.45);
+  overflow: hidden;
+}
+
+/* Graduations sit above the fill. Built by hero.js. */
+.phase-ruler__scale {
+  position: absolute;
+  inset: 0;
+}
+
+/* REAL-RULER LOWER-LIP SCALE: every tick grows UP from the bottom edge.
+   Minor 2% ticks are short, 5% ticks are mid, 20% majors are tall and
+   bright. Nothing marks the top — the scale lives on the bottom lip. */
+.phase-ruler__tick {
+  position: absolute;
+  bottom: 0;
+  transform: translateX(-50%);
+  width: 1px;
+  height: 6px;
+  background: rgba(199, 162, 74, 0.5);
+}
+
+.phase-ruler__tick--mid {
+  height: 11px;
+  background: rgba(199, 162, 74, 0.72);
+}
+
+.phase-ruler__tick--major {
+  height: 19px;
+  background: var(--gold-bright);
+  box-shadow: 0 0 4px rgba(244, 208, 92, 0.45);
+}
+
+/* Phase number printed next to each major graduation, just above the lip. */
+.phase-ruler__mark {
+  position: absolute;
+  bottom: 6px;
+  transform: translateX(-50%);
+  font-family: var(--font-mono);
+  font-size: 0.5rem;
+  font-weight: 600;
+  color: var(--gold-bright);
+  letter-spacing: 0.05em;
+}
+.phase-ruler__mark i { font-style: normal; }
+
+/* The travelling gold marker: width driven by hero.js (0%→100%). */
+.phase-ruler__fill {
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 0%;
+  background:
+    linear-gradient(90deg, rgba(244, 208, 92, 0.08), rgba(244, 208, 92, 0.45)),
+    rgba(244, 208, 92, 0.18);
+  box-shadow: inset 0 0 18px rgba(244, 208, 92, 0.35);
+  will-change: width;
+}
+
+/* Sold gold *leading edge* so the ruler reads like a cursor sliding over
+   the dark track — travelled = gold, remaining = grey/dark. */
+.phase-ruler__fill::after {
+  content: '';
+  position: absolute;
+  right: -1px;
+  top: -1px;
+  bottom: -1px;
+  width: 2px;
+  background: var(--gold-bright);
+  box-shadow: 0 0 8px rgba(244, 208, 92, 0.8);
+}
+
+/* Journey ruler hides once the 5 phases are fully travelled — the scale is
+   an instrument for the pinned journey only, not the content below it. */
+.phase-ruler.is-complete {
+  opacity: 0;
+  transform: translateY(120%);
+  pointer-events: none;
+}
+
+.phase-ruler {
+  transition: opacity 0.35s cubic-bezier(0.16, 1, 0.3, 1),
+    transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* --------------------------------------------------------------------------
+   SCROLL-UNLOCK PLACEHOLDER
+   -------------------------------------------------------------------------- */
+
+/* ──────────────────────────────────────────────────────────────────────────
+   LANDING HERO — cinematic film-cover intro that scrolls away into the
+   journey. Film-frame backdrop (a phase-01 WebP still), animated blueprint
+   drift grid, one slow gold beam sweep, top/bottom veils, and a
+   "SCROLL TO BEGIN" cue. All same palette as the hero scrollytelling.
+   ────────────────────────────────────────────────────────────────────────── */
+.landing-hero {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  min-height: 560px;
+  overflow: hidden;
+  background-color: var(--ink-dark);
+  isolation: isolate;
+  text-align: center;
+}
+
+/* Film-frame backdrop — the phase-01 mid frame, slow Ken Burns settle. */
+.landing-hero__bg {
+  position: absolute;
+  inset: 0;
+  z-index: -3;
+  background-image: url('/video/01/16.webp');
+  background-size: cover;
+  background-position: center;
+  transform: scale(1.12);
+  animation: landing-kenburns 26s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes landing-kenburns {
+  from { transform: scale(1.12); }
+  to   { transform: scale(1.0); }
+}
+
+/* Blueprint drafting grid — dim gold hairlines drifting upward, vignetted
+   by a soft radial mask so the grid breathes at center only. */
+.landing-hero__grid {
+  position: absolute;
+  inset: -64px;
+  z-index: -2;
+  background-image:
+    linear-gradient(rgba(244, 208, 92, 0.07) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(244, 208, 92, 0.07) 1px, transparent 1px);
+  background-size: 44px 44px;
+  -webkit-mask-image: radial-gradient(ellipse 85% 72% at 50% 45%, #000 32%, transparent 78%);
+  mask-image: radial-gradient(ellipse 85% 72% at 50% 45%, #000 32%, transparent 78%);
+  animation: landing-grid-drift 22s linear infinite;
+}
+
+@keyframes landing-grid-drift {
+  to { transform: translate3d(0, 44px, 0); }
+}
+
+/* Gold beam sweep — a single angled highlight passing left-to-right. */
+.landing-hero__beam {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background: linear-gradient(
+    110deg,
+    transparent 32%,
+    rgba(244, 208, 92, 0.14) 46%,
+    rgba(255, 248, 230, 0.26) 50%,
+    rgba(244, 208, 92, 0.14) 54%,
+    transparent 68%
+  );
+  background-size: 220% 100%;
+  animation: landing-beam-sweep 9s cubic-bezier(0.25, 0.6, 0.3, 1) infinite;
+}
+
+@keyframes landing-beam-sweep {
+  0%          { background-position: 120% 0; }
+  60%, 100%   { background-position: -120% 0; }
+}
+
+/* Once the hero scrolls fully out of view, freeze its decorative infinite
+   animations (drift grid, beam sweep, cue dot). Pure CPU/GPU savings — the
+   same browsers still play them the moment the hero re-enters. */
+.landing-hero.is-offscreen .landing-hero__grid,
+.landing-hero.is-offscreen .landing-hero__beam,
+.landing-hero.is-offscreen .landing-hero__cue-line i,
+body.hero-offscreen .landing-hero__grid,
+body.hero-offscreen .landing-hero__beam,
+body.hero-offscreen .landing-hero__cue-line i {
+  animation-play-state: paused;
+}
+
+/* Top + bottom veils keep text legible over the bright frame center. */
+.landing-hero__veil {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    linear-gradient(180deg, rgba(14, 16, 20, 0.6) 0%, rgba(14, 16, 20, 0) 30%),
+    linear-gradient(0deg, rgba(14, 16, 20, 0.72) 0%, rgba(14, 16, 20, 0) 45%);
+}
+
+.landing-hero__content {
+  position: relative;
+  z-index: 2;
+  max-width: 860px;
+  padding: 0 28px 4vh;
+}
+
+.landing-hero__kicker {
+  display: inline-block;
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  color: var(--gold-bright);
+  margin-bottom: 26px;
+}
+
+.landing-hero__title {
+  font-family: var(--font-serif);
+  font-size: clamp(2.3rem, 6vw, 4.6rem);
+  font-weight: 700;
+  line-height: 1.06;
+  letter-spacing: 0.005em;
+  color: var(--bg-paper-light);
+  text-shadow: 0 2px 30px rgba(14, 16, 20, 0.55);
+  margin-bottom: 22px;
+}
+
+.landing-hero__title::after {
+  content: '·';
+  color: var(--gold-bright);
+  margin-left: 0.06em;
+}
+
+.landing-hero__sub {
+  margin: 0 auto;
+  max-width: 560px;
+  color: rgba(253, 243, 223, 0.82);
+  font-size: 1.02rem;
+  line-height: 1.7;
+}
+
+.landing-hero__cta {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 18px;
+  margin-top: 34px;
+}
+
+.landing-hero__enter {
+  font-family: var(--font-mono);
+  font-size: 0.82rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  text-decoration: none;
+  color: var(--bg-paper-light);
+  border: 1px solid rgba(244, 208, 92, 0.45);
+  border-radius: 999px;
+  padding: 11px 20px;
+  transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+}
+
+.landing-hero__enter:hover,
+.landing-hero__enter:focus-visible {
+  background-color: var(--gold-bright);
+  border-color: var(--gold-bright);
+  color: var(--ink-dark);
+}
+
+/* "SCROLL TO BEGIN" mouse cue — strokes melt downward until the hero scrolls away. */
+.landing-hero__cue {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 30px;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 9px;
+  pointer-events: none;
+}
+
+.landing-hero__cue-text {
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.34em;
+  text-transform: uppercase;
+  color: rgba(253, 243, 223, 0.66);
+}
+
+.landing-hero__cue-line {
+  position: relative;
+  width: 26px;
+  height: 42px;
+  border: 1px solid rgba(253, 243, 223, 0.45);
+  border-radius: 999px;
+}
+
+.landing-hero__cue-line i {
+  position: absolute;
+  top: 8px;
+  left: 50%;
+  width: 3px;
+  height: 8px;
+  margin-left: -1.5px;
+  border-radius: 2px;
+  background-color: var(--gold-bright);
+  animation: landing-cue-dot 1.6s cubic-bezier(0.16, 1, 0.3, 1) infinite;
+}
+
+@keyframes landing-cue-dot {
+  0%   { transform: translateY(0); opacity: 0; }
+  30%  { opacity: 1; }
+  100% { transform: translateY(16px); opacity: 0; }
+}
+
+/* ──────────────────────────────────────────────────────────────────────────
+   RESPONSIVE
+   ────────────────────────────────────────────────────────────────────────── */
+@media (max-width: 640px) {
+  .navbar-wrapper {
+    padding-top: 8px;
+  }
+
+  .navbar {
+    padding: 0;
+    width: calc(100vw - 24px);
+    gap: 12px;
+  }
+
+  .navbar__brand-text {
+    font-size: 1.05rem;
+    letter-spacing: 0.05em;
+  }
+
+  .navbar__logo-box {
+    width: 30px;
+    height: 30px;
+  }
+
+  .btn-blueprint {
+    padding: 9px 14px;
+    font-size: 0.72rem;
+  }
+
+  .hero-card {
+    left: 16px;
+    width: auto;
+    top: auto;
+    bottom: 7vh;
+    transform: translateY(24px);
+    padding: 0;
+  }
+
+  .hero-slide.is-visible .hero-card {
+    transform: translateY(0);
+  }
+
+  .hero-card__title {
+    font-size: 1.55rem;
+    margin-bottom: 12px;
+  }
+
+  .hero-card__desc {
+    font-size: 0.92rem;
+  }
+
+  .hero-card__label {
+    margin-bottom: 12px;
+  }
+
+  /* On small screens, darken the lower area where the card sits */
+  .hero-slide__veil {
+    background:
+      linear-gradient(180deg, rgba(30, 32, 36, 0.5) 0%, rgba(30, 32, 36, 0) 20%),
+      linear-gradient(
+        0deg,
+        rgba(30, 32, 36, 0.78) 0%,
+        rgba(30, 32, 36, 0.45) 42%,
+        rgba(30, 32, 36, 0.15) 100%
+      );
+  }
+}
+
+/* ── Landing hero: mobile + reduced motion ── */
+@media (max-width: 640px) {
+  .landing-hero__cta {
+    flex-direction: column;
+    gap: 14px;
+  }
+
+  .landing-hero__kicker {
+    font-size: 0.68rem;
+    letter-spacing: 0.22em;
+    margin-bottom: 20px;
+  }
+
+  .landing-hero__sub {
+    font-size: 0.95rem;
+  }
+
+  .landing-hero__cue {
+    bottom: 22px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .landing-hero__bg,
+  .landing-hero__grid,
+  .landing-hero__beam {
+    animation: none;
+  }
+
+  .landing-hero__bg,
+  .landing-hero__grid {
+    transform: none;
+  }
+
+  .landing-hero__cue-line i {
+    animation: none;
+    opacity: 1;
+  }
+}
+
+/* Reduced motion: show cards immediately, skip scale settle */
+@media (prefers-reduced-motion: reduce) {
+  .hero-card,
+  .hero-slide__bg,
+  .hero-frame {
+    transition: none !important;
+  }
+
+  .hero-slide.is-active {
+    animation: none;
+  }
+
+  .hero-slide__bg {
+    transform: none;
+  }
+
+  .hero-card {
+    opacity: 1;
+    transform: translateY(-50%);
+  }
+
+  .hero-slide__tint {
+    mix-blend-mode: normal;        /* flat wash instead of blend animation */
+    opacity: 0.55;
+  }
+
+  .navbar-wrapper.is-downstream .navbar__nav,
+  .navbar-wrapper.is-downstream .navbar__actions {
+    animation: none !important;
+  }
+}
+
+/* ==========================================================================
+   DECKS — every sheet below the journey is a self-contained component whose
+   HEADING BAND (.sheet-head) pins at the top of the viewport while the
+   sheet body flows through beneath it at natural height (long content never
+   clips). The next sheet's heading simply cascades over the previous one —
+   later DOM paints above equal z-index. Sticky behavior lives in deck.css.
+   ========================================================================== */
+
+.deck-slide {
+  position: relative;
+}
+
+/* ==========================================================================
+   SECTION LAYER — v1 "rest of site" ported onto the preserved brand palette.
+   Ribbon marquee, studio metrics, methodology, manila-folder dossier,
+   services matrix, engagement tiers, FAQ protocol, blueprint cobalt footer,
+   project-inspector + inquiry modals.
+   ========================================================================== */
+
+.mono {
+  font-family: var(--font-mono);
+  letter-spacing: 0.02em;
+}
+
+/* ──────────────────────────────────────────────────────────────────────────
+   BLUEPRINT RIBBON MARQUEE — painted steel alert strip under the hero
+   ────────────────────────────────────────────────────────────────────────── */
+.blueprint-ribbon {
+  background: var(--blueprint-bg);
+  color: var(--bg-paper-light);
+  overflow: hidden;
+  padding: 16px 0;
+  border-top: 1px solid var(--gold-line);
+  border-bottom: 1px solid var(--gold-line);
+  position: relative;
+  z-index: 5;
+}
+
+.ribbon-track {
+  display: flex;
+  gap: 64px;
+  white-space: nowrap;
+  animation: ribbon-scroll 30s linear infinite;
+  width: max-content;
+}
+
+@keyframes ribbon-scroll {
+  from { transform: translateX(0); }
+  to   { transform: translateX(-50%); }
+}
+
+.ribbon-item {
+  font-family: var(--font-mono);
+  font-size: 0.82rem;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--bg-paper-light);
+  opacity: 0.9;
+}
+
+.ribbon-item::after {
+  content: "◆";
+  margin-left: 64px;
+  color: var(--gold-bright);
+  font-size: 0.6rem;
+  opacity: 0.9;
+}
+
+/* ──────────────────────────────────────────────────────────────────────────
+   STUDIO REGISTER METRICS — ledger strip
+   ────────────────────────────────────────────────────────────────────────── */
+.metrics-section {
+  background: var(--bg-paper);
+  padding: 56px 0 64px;
+}
+
+.metrics-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 28px;
+  border-top: 2px solid var(--ink-dark);
+  border-bottom: 1px solid var(--border-rule);
+  padding: 36px 0 30px;
+}
+
+.metric-box {
+  text-align: center;
+  padding: 8px 16px;
+}
+
+.metric-number {
+  font-family: var(--font-mono);
+  font-size: 2.6rem;
+  font-weight: 700;
+  color: var(--ink-blue);
+  line-height: 1;
+  margin-bottom: 8px;
+}
+
+.metric-label {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--ink-muted);
+}
+
+/* ──────────────────────────────────────────────────────────────────────────
+   SHEET HEADER — blueprint sheet meta block used by every section
+   ────────────────────────────────────────────────────────────────────────── */
+.sheet-header {
+  margin-bottom: 44px;
+}
+
+.sheet-header__meta {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--ink-blue);
+  margin-bottom: 18px;
+}
+
+.sheet-header__rule {
+  flex: 1;
+  height: 1px;
+  background: var(--border-rule);
+}
+
+.sheet-header__title-row {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 40px;
+}
+
+.sheet-header__title {
+  font-family: var(--font-display);
+  font-size: clamp(1.7rem, 3.4vw, 2.6rem);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1.15;
+  color: var(--ink-dark);
+  max-width: 640px;
+}
+
+.sheet-header__tagline {
+  color: var(--ink-muted);
+  font-size: 1.02rem;
+  line-height: 1.6;
+  max-width: 420px;
+  flex-shrink: 0;
+}
+
+/* ──────────────────────────────────────────────────────────────────────────
+   METHODOLOGY — 4-step workflow cards
+   ────────────────────────────────────────────────────────────────────────── */
+.workflow-section {
+  background: var(--bg-paper-light);
+  padding: 72px 0;
+  border-top: 1px solid var(--border-rule);
+}
+
+.workflow-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 22px;
+}
+
+.workflow-card {
+  position: relative;
+  background: var(--bg-paper);
+  border: 1px solid rgba(30, 32, 36, 0.16);
+  border-top: 3px solid var(--ink-blue);
+  border-radius: var(--radius-sm);
+  padding: 26px 24px 24px;
+  box-shadow: 0 14px 34px rgba(30, 32, 36, 0.08);
+  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.25s ease;
+}
+
+.workflow-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 24px 44px rgba(30, 32, 36, 0.12);
+}
+
+.stamp-badge {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.stamp-circle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  border: 2px solid var(--accent-orange-ink);
+  color: var(--accent-orange-ink);
+  font-family: var(--font-mono);
+  font-weight: 700;
+  font-size: 1rem;
+  flex-shrink: 0;
+}
+
+.stamp-underlined {
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink-blue);
+  text-decoration: underline;
+  text-decoration-color: var(--accent-orange);
+  text-underline-offset: 4px;
+  text-decoration-thickness: 2px;
+}
+
+.workflow-card__title {
+  font-size: 1.28rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  margin-bottom: 12px;
+  color: var(--ink-dark);
+}
+
+.workflow-card__desc {
+  color: var(--ink-muted);
+  font-size: 0.95rem;
+  line-height: 1.65;
+  margin-bottom: 22px;
+}
+
+.workflow-card__foot {
+  border-top: 1px dashed rgba(30, 32, 36, 0.22);
+  padding-top: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.workflow-card__foot span {
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  color: var(--ink-muted);
+}
+
+.workflow-card__foot strong {
+  font-family: var(--font-mono);
+  font-size: 0.74rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  color: var(--ink-blue);
+}
+
+/* ──────────────────────────────────────────────────────────────────────────
+   MANILA FOLDER DOSSIER — tabbed register + filter + project grid
+   ────────────────────────────────────────────────────────────────────────── */
+.portfolio-section {
+  background: var(--bg-paper);
+  padding: 72px 0;
+}
+
+.manila-folder {
+  background: var(--bg-paper-light);
+  border: 1px solid #D8BF9A;
+  border-radius: var(--radius-md);
+  box-shadow: 0 18px 40px rgba(30, 32, 36, 0.1);
+  overflow: hidden;
+}
+
+.manila-folder__tabs {
+  display: flex;
+  gap: 4px;
+  background: #E9D7B8;
+  border-bottom: 1px solid #D8BF9A;
+  padding: 10px 12px 0;
+}
+
+.manila-tab {
+  padding: 11px 20px;
+  font-family: var(--font-mono);
+  font-size: 0.74rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  color: var(--ink-muted-strong);
+  cursor: default;
+  border: 1px solid transparent;
+  border-bottom: none;
+  border-radius: 8px 8px 0 0;
+  position: relative;
+  top: 1px;
+}
+
+.manila-tab.active {
+  background: var(--bg-paper);
+  color: var(--ink-blue);
+  border-color: #D8BF9A;
+}
+
+.manila-folder__body {
+  padding: 34px 34px 40px;
+}
+
+.filter-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  flex-wrap: wrap;
+  margin-bottom: 30px;
+}
+
+.filter-pills {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.filter-btn {
+  background: var(--bg-paper);
+  border: 1px solid rgba(30, 32, 36, 0.22);
+  border-radius: 999px;
+  padding: 8px 18px;
+  font-family: var(--font-mono);
+  font-size: 0.74rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: var(--ink-dark);
+  cursor: pointer;
+  transition: background-color 0.18s ease, color 0.18s ease, border-color 0.18s ease;
+}
+
+.filter-btn:hover {
+  border-color: var(--ink-blue);
+  color: var(--ink-blue);
+}
+
+.filter-btn.active {
+  background: var(--ink-blue);
+  border-color: var(--ink-blue);
+  color: var(--bg-paper-light);
+}
+
+.dossier-count {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--ink-muted);
+  letter-spacing: 0.04em;
+}
+
+.projects-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+}
+
+.project-card {
+  background: var(--bg-paper);
+  border: 1px solid rgba(30, 32, 36, 0.14);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  cursor: pointer;
+  transition: transform 0.22s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.22s ease;
+}
+
+.project-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 16px 32px rgba(30, 32, 36, 0.12);
+}
+
+.project-card.is-hidden {
+  display: none;
+}
+
+.project-card__thumb {
+  position: relative;
+  aspect-ratio: 4 / 3;
+  background: #000;
+  overflow: hidden;
+}
+
+.project-card__thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.project-card:hover .project-card__thumb img {
+  transform: scale(1.05);
+}
+
+.project-scale-badge {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  background: rgba(26, 55, 138, 0.92);
+  color: var(--bg-paper-light);
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  padding: 5px 10px;
+  border-radius: 4px;
+  border: 1px solid var(--gold-line);
+}
+
+.project-card__info {
+  padding: 18px 18px 16px;
+}
+
+.project-meta-type {
+  font-family: var(--font-mono);
+  font-size: 0.64rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  color: var(--accent-orange-ink);
+  text-transform: uppercase;
+}
+
+.project-title {
+  font-size: 1.18rem;
+  font-weight: 700;
+  margin: 8px 0 8px;
+  color: var(--ink-dark);
+}
+
+.project-location {
+  font-size: 0.86rem;
+  color: var(--ink-muted);
+  line-height: 1.55;
+  margin-bottom: 14px;
+}
+
+.project-card__meta-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-top: 1px dashed rgba(30, 32, 36, 0.2);
+  padding-top: 12px;
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  font-weight: 600;
+  color: var(--ink-muted);
+  letter-spacing: 0.06em;
+}
+
+.view-drawing-link {
+  color: var(--ink-blue);
+  font-weight: 700;
+}
+
+/* ──────────────────────────────────────────────────────────────────────────
+   SERVICES BLUEPRINT MATRIX
+   ────────────────────────────────────────────────────────────────────────── */
+.services-section {
+  background: var(--bg-paper-light);
+  padding: 72px 0;
+  border-top: 1px solid var(--border-rule);
+}
+
+.services-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 22px;
+}
+
+.service-card {
+  background: var(--bg-paper);
+  border: 1px solid rgba(30, 32, 36, 0.14);
+  border-radius: var(--radius-sm);
+  padding: 26px 24px;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.service-card:hover {
+  border-color: var(--ink-blue);
+  box-shadow: 0 14px 30px rgba(59, 96, 197, 0.12);
+}
+
+.service-card__num {
+  font-family: var(--font-mono);
+  font-size: 0.66rem;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  color: var(--accent-orange-ink);
+}
+
+.service-card__title {
+  font-size: 1.2rem;
+  font-weight: 700;
+  margin: 12px 0 10px;
+  color: var(--ink-dark);
+}
+
+.service-card__desc {
+  font-size: 0.92rem;
+  color: var(--ink-muted);
+  line-height: 1.6;
+  margin-bottom: 18px;
+}
+
+.service-card__scope {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.service-card__scope li {
+  position: relative;
+  padding-left: 18px;
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--ink-dark);
+}
+
+.service-card__scope li::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 7px;
+  width: 8px;
+  height: 8px;
+  background: var(--ink-blue);
+  border-radius: 1px;
+  transform: rotate(45deg);
+}
+
+/* ──────────────────────────────────────────────────────────────────────────
+   ENGAGEMENT TIERS & SCOPE
+   ────────────────────────────────────────────────────────────────────────── */
+.pricing-section {
+  background: var(--bg-paper);
+  padding: 72px 0;
+}
+
+.pricing-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+  align-items: stretch;
+}
+
+.price-card {
+  position: relative;
+  background: var(--bg-paper);
+  border: 1px solid rgba(30, 32, 36, 0.16);
+  border-radius: var(--radius-md);
+  padding: 30px 26px;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 14px 34px rgba(30, 32, 36, 0.08);
+}
+
+.price-card.featured {
+  border: 2px solid var(--ink-blue);
+  box-shadow: 0 22px 44px rgba(59, 96, 197, 0.18);
+}
+
+.price-card__tag {
+  position: absolute;
+  top: -13px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--accent-orange-ink);
+  color: var(--bg-paper-light);
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  padding: 5px 14px;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+
+.price-card__tier {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  color: var(--accent-orange-ink);
+  margin-bottom: 12px;
+}
+
+.price-card__title {
+  font-size: 1.45rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  margin-bottom: 10px;
+  color: var(--ink-dark);
+}
+
+.price-card__desc {
+  font-size: 0.92rem;
+  color: var(--ink-muted);
+  line-height: 1.6;
+  margin-bottom: 20px;
+}
+
+.price-card__scope-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 11px;
+  margin-bottom: 26px;
+}
+
+.price-card__scope-list li {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  font-size: 0.88rem;
+  color: var(--ink-dark);
+}
+
+.price-card__scope-list svg {
+  color: var(--ink-blue);
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.btn-blueprint-ghost {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background: transparent;
+  color: var(--ink-blue);
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  padding: 10px 20px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--ink-blue);
+  text-decoration: none;
+  cursor: pointer;
+  transition: background 0.2s cubic-bezier(0.16, 1, 0.3, 1), color 0.2s ease, transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+.btn-blueprint-ghost:hover {
+  background: var(--ink-blue);
+  color: var(--bg-paper-light);
+}
+
+/* ──────────────────────────────────────────────────────────────────────────
+   FAQ ACCORDION
+   ────────────────────────────────────────────────────────────────────────── */
+.faq-section {
+  background: var(--bg-paper-light);
+  padding: 72px 0;
+  border-top: 1px solid var(--border-rule);
+}
+
+.faq-list {
+  max-width: 820px;
+  margin: 0 auto;
+  border-top: 2px solid var(--ink-dark);
+  display: flex;
+  flex-direction: column;
+}
+
+.faq-item {
+  border-bottom: 1px solid var(--border-rule);
+}
+
+.faq-question {
+  width: 100%;
+  background: none;
+  border: none;
+  text-align: left;
+  padding: 22px 4px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  cursor: pointer;
+  font-family: var(--font-display);
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: var(--ink-dark);
+}
+
+.faq-toggle-icon {
+  color: var(--ink-blue);
+  font-size: 0.7rem;
+  transition: transform 0.25s ease;
+  flex-shrink: 0;
+}
+
+.faq-item.active .faq-toggle-icon {
+  transform: rotate(180deg);
+}
+
+.faq-answer {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.faq-item.active .faq-answer {
+  max-height: 320px;
+}
+
+.faq-answer__inner {
+  padding: 0 4px 24px;
+  color: var(--ink-muted);
+  font-size: 0.98rem;
+  line-height: 1.7;
+  max-width: 720px;
+}
+
+/* ──────────────────────────────────────────────────────────────────────────
+   BLUEPRINT COBALT FOOTER
+   ────────────────────────────────────────────────────────────────────────── */
+.blueprint-footer {
+  background: var(--blueprint-bg);
+  color: var(--bg-paper-light);
+  padding: 64px 0 32px;
+  border-top: 1px solid var(--gold-line);
+}
+
+.footer-main {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr 1.4fr;
+  gap: 40px;
+  padding-bottom: 48px;
+  border-bottom: 1px solid rgba(253, 243, 223, 0.18);
+}
+
+.footer-brand__name {
+  font-family: var(--font-display);
+  font-size: 1.7rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  color: var(--bg-paper-light);
+  margin-bottom: 14px;
+}
+
+.footer-brand__desc {
+  color: rgba(253, 243, 223, 0.75);
+  font-size: 0.95rem;
+  line-height: 1.7;
+  max-width: 340px;
+}
+
+.footer-col-title {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--gold-bright);
+  margin-bottom: 18px;
+}
+
+.footer-nav {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.footer-nav a {
+  color: rgba(253, 243, 223, 0.82);
+  text-decoration: none;
+  font-size: 0.9rem;
+  transition: color 0.18s ease;
+}
+
+.footer-nav a:hover {
+  color: var(--gold-bright);
+}
+
+.footer-contact-item {
+  margin-bottom: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.footer-contact-item .label {
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  color: var(--gold-bright);
+}
+
+.footer-contact-item .value {
+  color: rgba(253, 243, 223, 0.85);
+  font-size: 0.9rem;
+  text-decoration: none;
+  line-height: 1.5;
+}
+
+.footer-bottom {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  flex-wrap: wrap;
+  padding-top: 26px;
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  color: rgba(253, 243, 223, 0.6);
+}
+
+/* ──────────────────────────────────────────────────────────────────────────
+   MODALS — project inspector + inquiry / transmittal
+   ────────────────────────────────────────────────────────────────────────── */
+body.modal-open {
+  overflow: hidden;
+}
+
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1200;
+  background: rgba(16, 18, 22, 0.72);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.25s ease, visibility 0.25s ease;
+}
+
+.modal-overlay.is-open {
+  opacity: 1;
+  visibility: visible;
+}
+
+.modal-dialog {
+  background: var(--bg-paper-light);
+  border: 1px solid var(--gold-line);
+  border-radius: var(--radius-md);
+  max-width: 820px;
+  width: 100%;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 34px 80px rgba(0, 0, 0, 0.5);
+  transform: translateY(18px);
+  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.modal-overlay.is-open .modal-dialog {
+  transform: translateY(0);
+}
+
+.modal-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 16px 24px;
+  border-bottom: 1px solid var(--border-rule);
+  background: rgba(243, 230, 205, 0.6);
+  border-radius: var(--radius-md) var(--radius-md) 0 0;
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  letter-spacing: 0.06em;
+}
+
+.modal-close-btn {
+  background: none;
+  border: 1px solid rgba(30, 32, 36, 0.3);
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  font-size: 0.85rem;
+  cursor: pointer;
+  color: var(--ink-dark);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.18s ease, color 0.18s ease, border-color 0.18s ease, transform 0.18s ease;
+}
+
+.modal-close-btn:hover {
+  background: var(--ink-dark);
+  color: var(--bg-paper-light);
+  border-color: var(--ink-dark);
+}
+
+.modal-body {
+  padding: 24px;
+}
+
+/* ──────────────────────────────────────────────────────────────────────────
+   RESPONSIVE — section layer
+   ────────────────────────────────────────────────────────────────────────── */
+@media (max-width: 1024px) {
+  .workflow-grid { grid-template-columns: repeat(2, 1fr); }
+  .services-grid { grid-template-columns: repeat(2, 1fr); }
+  .pricing-grid { grid-template-columns: 1fr; max-width: 560px; margin: 0 auto; }
+  .projects-grid { grid-template-columns: repeat(2, 1fr); }
+  .metrics-grid { grid-template-columns: repeat(2, 1fr); gap: 24px; }
+  .sheet-header__title-row { flex-direction: column; align-items: flex-start; gap: 14px; }
+  .sheet-header__tagline { max-width: 620px; }
+  .footer-main { grid-template-columns: 1fr 1fr; gap: 34px; }
+}
+
+@media (max-width: 760px) {
+  .metrics-section { padding: 40px 0 44px; }
+  .workflow-section, .portfolio-section, .services-section,
+  .pricing-section, .faq-section { padding: 52px 0; }
+  .workflow-grid { grid-template-columns: 1fr; }
+  .services-grid { grid-template-columns: 1fr; }
+  .projects-grid { grid-template-columns: 1fr; }
+  .metrics-grid { grid-template-columns: 1fr; gap: 20px; }
+  .manila-folder__body { padding: 22px 18px 26px; }
+  .filter-bar { flex-direction: column; align-items: flex-start; }
+  .ribbon-item { font-size: 0.72rem; }
+  .metric-number { font-size: 2rem; }
+  .pricing-grid { max-width: 100%; }
+  .footer-main { grid-template-columns: 1fr; gap: 30px; }
+  .footer-bottom { flex-direction: column; align-items: flex-start; }
+  .modal-dialog { max-height: 94vh; }
+
+  /* Middle links are a desktop affordance; keep brand + CTA on small screens. */
+  .navbar-wrapper.is-downstream .navbar__nav {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  .ribbon-track { animation: none; }
+  .workflow-card, .project-card, .service-card, .price-card { transition: none; }
+  .faq-answer { transition: none; }
+  .modal-overlay, .modal-dialog { transition: none; }
+}
